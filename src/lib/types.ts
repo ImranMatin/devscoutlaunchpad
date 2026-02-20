@@ -34,3 +34,10 @@ export interface OutreachDraft {
   linkedinMessage: string;
   email: { subject: string; body: string };
 }
+
+export interface TailoredResume {
+  summary: string;
+  skills: string[];
+  projects: string[];
+  tips: string;
+}

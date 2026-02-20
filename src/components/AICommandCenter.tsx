@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send } from "lucide-react";
+import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send, FileText, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Opportunity, ResumeData, SmartMatchResult, OutreachDraft } from "@/lib/types";
+import { Opportunity, ResumeData, SmartMatchResult, OutreachDraft, TailoredResume } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -15,8 +15,10 @@ interface AICommandCenterProps {
 const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterProps) => {
   const [matchResult, setMatchResult] = useState<SmartMatchResult | null>(null);
   const [outreach, setOutreach] = useState<OutreachDraft | null>(null);
+  const [tailoredResume, setTailoredResume] = useState<TailoredResume | null>(null);
   const [loadingMatch, setLoadingMatch] = useState(false);
   const [loadingOutreach, setLoadingOutreach] = useState(false);
+  const [loadingTailor, setLoadingTailor] = useState(false);
   const { toast } = useToast();
 
   const saveMatchHistory = async (result: SmartMatchResult) => {
@@ -71,9 +73,49 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
     }
   };
 
+  const tailorResume = async () => {
+    if (!resumeData) return;
+    setLoadingTailor(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("tailor-resume", {
+        body: { resume: resumeData, opportunity },
+      });
+      if (error) throw error;
+      setTailoredResume(data as TailoredResume);
+      toast({ title: "Resume Tailored!", description: "Your resume has been optimized for this role." });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to tailor resume.", variant: "destructive" });
+    } finally {
+      setLoadingTailor(false);
+    }
+  };
+
+  const saveToProfile = async () => {
+    if (!tailoredResume) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase.from("profiles").update({
+        skills: tailoredResume.skills as any,
+        projects: tailoredResume.projects as any,
+      }).eq("user_id", session.user.id);
+      toast({ title: "Saved!", description: "Tailored skills & projects saved to your profile." });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to save to profile.", variant: "destructive" });
+    }
+  };
+
   const copyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: `${label} copied to clipboard.` });
+  };
+
+  const copyTailoredResume = () => {
+    if (!tailoredResume) return;
+    const full = `PROFESSIONAL SUMMARY\n${tailoredResume.summary}\n\nSKILLS\n${tailoredResume.skills.join(", ")}\n\nPROJECTS\n${tailoredResume.projects.join("\n")}`;
+    copyText(full, "Tailored resume");
   };
 
   return (
@@ -149,6 +191,59 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                     <p key={i} className="text-xs text-foreground/80 pl-4">• {tip}</p>
                   ))}
                 </div>
+              )}
+
+              {/* Tailor Resume Button */}
+              {!tailoredResume && (
+                <Button onClick={tailorResume} disabled={loadingTailor} className="w-full" variant="outline">
+                  {loadingTailor ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                  Tailor My Resume
+                </Button>
+              )}
+
+              {/* Tailored Resume Results */}
+              {tailoredResume && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-primary flex items-center gap-1">
+                      <FileText className="w-4 h-4" /> Tailored Resume
+                    </p>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyTailoredResume}>
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveToProfile}>
+                        <Save className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="glass-panel p-3">
+                    <p className="text-xs font-semibold text-foreground mb-1">Professional Summary</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{tailoredResume.summary}</p>
+                  </div>
+
+                  <div className="glass-panel p-3">
+                    <p className="text-xs font-semibold text-foreground mb-2">Optimized Skills</p>
+                    <div className="flex flex-wrap gap-1">
+                      {tailoredResume.skills.map((skill, i) => (
+                        <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary">{skill}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="glass-panel p-3 space-y-2">
+                    <p className="text-xs font-semibold text-foreground">Reframed Projects</p>
+                    {tailoredResume.projects.map((proj, i) => (
+                      <p key={i} className="text-xs text-foreground/80 pl-4">• {proj}</p>
+                    ))}
+                  </div>
+
+                  <div className="glass-panel p-3">
+                    <p className="text-xs font-semibold text-amber-400 mb-1">✨ What Changed</p>
+                    <p className="text-xs text-foreground/80">{tailoredResume.tips}</p>
+                  </div>
+                </motion.div>
               )}
             </motion.div>
           )}
