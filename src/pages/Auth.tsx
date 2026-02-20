@@ -40,7 +40,7 @@ const Auth = () => {
           <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
             <Zap className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">ScholarScout</h1>
+          <h1 className="text-2xl font-bold text-foreground">DevScoutLaunchPad</h1>
         </div>
 
         <div className="glass-panel p-8">
