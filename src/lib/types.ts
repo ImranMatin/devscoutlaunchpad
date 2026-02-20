@@ -44,3 +44,8 @@ export interface TailoredResume {
   projects: string[];
   tips: string;
 }
+
+export interface CoverLetterData {
+  coverLetter: string;
+  subject: string;
+}
