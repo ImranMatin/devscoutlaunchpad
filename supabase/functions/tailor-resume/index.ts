@@ -52,14 +52,14 @@ Required Skills: ${opportunity.skills?.join(", ") || "Not specified"}
 INSTRUCTIONS:
 1. SUMMARY: Write a tailored 2-3 sentence professional summary for this specific role.
 2. TECHNICAL SKILLS: Reorganize the candidate's EXISTING skills into 2-3 categories, prioritizing those matching the opportunity. Do NOT invent new skills.
-3. EXPERIENCE: Return the candidate's experience entries EXACTLY as provided. Do NOT modify, add, or remove any experience.
+3. EXPERIENCE: Rewrite ONLY the bullet points for each experience entry using Google's X,Y,Z method: "Accomplished [X] as measured by [Y], by doing [Z]." Start each bullet with a strong action verb (e.g., Engineered, Spearheaded, Optimized, Architected, Delivered, Automated, Reduced, Increased). Include quantifiable metrics where appropriate (percentages, numbers, time saved, users impacted). PRESERVE the company, role, and dates EXACTLY. Do NOT add or remove any experience entries.
 4. PROJECTS: Return the candidate's projects EXACTLY as provided. Do NOT modify, add, or remove any projects.
 5. HACKATHONS: Return the candidate's hackathon entries EXACTLY as provided.
 6. EDUCATION: Return the candidate's education EXACTLY as provided.
 7. CONTACT INFO & LINKS: Pass through exactly as provided.
 8. TIPS: Brief explanation of what you tailored and why.
 
-CRITICAL: Do NOT fabricate any projects, experience, hackathons, or education. Only tailor the summary and skill categorization.
+CRITICAL: Do NOT fabricate any projects, experience, hackathons, or education. Only tailor the summary, skill categorization, and rewrite experience bullets using the X,Y,Z format with real information from the candidate's resume.
 
 You MUST respond using the tailor_resume tool.`;
 
