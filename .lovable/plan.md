@@ -1,86 +1,61 @@
 
-
-# Add User Authentication to ScholarScout
+# Add "Auto-Tailor Resume" Feature and Verify Smart Match Flow
 
 ## Overview
-Add email/password login and signup so users can persist their resume data and match history across sessions. Currently everything is stored in React state and lost on refresh.
+The Resume Improvement Tips already exist in the AI Command Center -- they appear after you click an opportunity card, then click "Analyze Compatibility" (requires a resume uploaded first). The tips show below the Skill Gap section.
+
+This plan adds a new **"Tailor My Resume"** button that uses AI to automatically rewrite your resume summary, skills, and project descriptions to better match a specific opportunity.
 
 ## What You'll Get
-- A polished login/signup page matching the existing dark navy + emerald theme
-- Automatic profile creation when you sign up
-- Your resume data saved to the cloud after processing
-- Match history saved every time you run Smart Match
-- A user menu in the sidebar with sign-out
+- A "Tailor My Resume" button that appears after Smart Match analysis completes
+- AI-generated tailored resume text optimized for the selected opportunity
+- Ability to copy the tailored resume or save it to your profile
+- The tailored version highlights relevant skills and reframes projects to match the job description
 
 ---
 
-## Technical Plan
+## Technical Details
 
-### 1. Database Tables (Migration)
+### 1. New Edge Function: `tailor-resume`
 
-**profiles** -- stores resume data per user
-- `user_id` (uuid, PK, references auth.users ON DELETE CASCADE)
-- `name` (text)
-- `skills` (jsonb, default '[]')
-- `projects` (jsonb, default '[]')
-- `raw_text` (text)
-- `created_at`, `updated_at` (timestamptz)
+Create `supabase/functions/tailor-resume/index.ts` that:
+- Accepts `resume` (ResumeData) and `opportunity` (Opportunity) in the request body
+- Calls the AI gateway with a prompt instructing it to rewrite the resume summary, reorder/emphasize skills, and reframe project descriptions to align with the opportunity
+- Returns a structured `TailoredResume` object containing:
+  - `summary` -- a rewritten professional summary
+  - `skills` -- reordered/augmented skills list highlighting relevant ones
+  - `projects` -- reframed project descriptions emphasizing transferable experience
+  - `tips` -- short explanation of what was changed and why
 
-**match_history** -- stores Smart Match results
-- `id` (uuid, PK, auto-generated)
-- `user_id` (uuid, NOT NULL, references profiles)
-- `opportunity_id` (text)
-- `opportunity_title` (text)
-- `score` (integer)
-- `highlights` (jsonb)
-- `skill_gap` (text)
-- `created_at` (timestamptz)
+### 2. New Type: `TailoredResume`
 
-Enable RLS on both tables. Policies: users can only SELECT/INSERT/UPDATE/DELETE their own rows (`auth.uid() = user_id`).
+Add to `src/lib/types.ts`:
+```
+interface TailoredResume {
+  summary: string;
+  skills: string[];
+  projects: string[];
+  tips: string;
+}
+```
 
-Auto-create a profile row on signup via a database trigger on `auth.users`.
+### 3. Update `AICommandCenter.tsx`
 
-### 2. Auth Context (`src/hooks/useAuth.tsx`)
-- React context wrapping `supabase.auth.onAuthStateChange` and `getSession`
-- Exposes `user`, `session`, `signUp`, `signIn`, `signOut`, `loading`
-- Wrap the app in this provider in `App.tsx`
+- Add state for `tailoredResume` and `loadingTailor`
+- After the Resume Improvement Tips section, add a "Tailor My Resume" button
+- When clicked, call `supabase.functions.invoke("tailor-resume", ...)`
+- Display the result in an expandable section with:
+  - Tailored summary text with copy button
+  - Updated skills list
+  - Reframed project bullets
+  - A "Save to Profile" button that updates the user's profile with the tailored data
+  - A "Copy All" button to copy the full tailored resume text
 
-### 3. Auth Page (`src/pages/Auth.tsx`)
-- Combined login/signup form with tab toggle
-- Styled with the glassmorphism theme
-- Email + password fields
-- Shows a message after signup to check email for verification
-- Route: `/auth`
-
-### 4. Protected Routes
-- Create a `ProtectedRoute` wrapper that redirects to `/auth` if not logged in
-- Wrap the Index route with it
-
-### 5. Update Existing Components
-
-**AppSidebar** -- add user avatar/email display at bottom with sign-out button
-
-**ResumeUpload** -- after resume is processed, save/update the `profiles` row with name, skills, projects, raw_text
-
-**Index page** -- on mount, load saved resume data from `profiles` table into state (so returning users see their data)
-
-**AICommandCenter** -- after Smart Match runs, insert a row into `match_history`; optionally add a "Match History" view in the sidebar
-
-### 6. Routing Updates (`App.tsx`)
-- Add `/auth` route
-- Wrap `/` in `ProtectedRoute`
-
-### 7. File Changes Summary
+### 4. File Changes Summary
 
 | File | Action |
 |------|--------|
-| Migration SQL | Create profiles, match_history, trigger, RLS |
-| `src/hooks/useAuth.tsx` | New -- auth context provider |
-| `src/pages/Auth.tsx` | New -- login/signup page |
-| `src/components/ProtectedRoute.tsx` | New -- auth guard |
-| `src/App.tsx` | Add AuthProvider, new routes |
-| `src/components/AppSidebar.tsx` | Add user info + sign out |
-| `src/components/ResumeUpload.tsx` | Save resume to profiles table |
-| `src/pages/Index.tsx` | Load profile on mount |
-| `src/components/AICommandCenter.tsx` | Save match results to match_history |
-
+| `supabase/functions/tailor-resume/index.ts` | New -- AI edge function for resume tailoring |
+| `src/lib/types.ts` | Add `TailoredResume` interface |
+| `src/components/AICommandCenter.tsx` | Add tailor button, display tailored results, save/copy actions |
+| `supabase/config.toml` | Add `tailor-resume` function config with `verify_jwt = false` |
