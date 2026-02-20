@@ -1,5 +1,5 @@
-import { Clock, ExternalLink, Zap } from "lucide-react";
-import { Opportunity } from "@/lib/types";
+import { Clock, ExternalLink, Zap, MapPin } from "lucide-react";
+import { Opportunity, LocationType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
@@ -13,6 +13,12 @@ const typeColors: Record<string, string> = {
   hackathon: "bg-violet-500/20 text-violet-300 border-violet-500/30",
   internship: "bg-blue-500/20 text-blue-300 border-blue-500/30",
   job: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+};
+
+const locationLabels: Record<LocationType, string> = {
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "On-site",
 };
 
 function getCountdown(deadline: string): string {
@@ -74,9 +80,15 @@ const OpportunityCard = ({ opportunity, onSelect, index }: OpportunityCardProps)
       </div>
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          <span>{countdown}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{countdown}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3 h-3" />
+            <span>{locationLabels[opportunity.location]}</span>
+          </div>
         </div>
         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>

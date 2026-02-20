@@ -139,6 +139,17 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                 <p className="text-xs font-semibold text-amber-400 mb-1">⚡ Skill Gap</p>
                 <p className="text-xs text-foreground/80">{matchResult.skillGap}</p>
               </div>
+
+              {matchResult.resumeTips && matchResult.resumeTips.length > 0 && (
+                <div className="glass-panel p-3 space-y-2">
+                  <p className="text-xs font-semibold text-primary flex items-center gap-1">
+                    📝 Resume Improvement Tips
+                  </p>
+                  {matchResult.resumeTips.map((tip, i) => (
+                    <p key={i} className="text-xs text-foreground/80 pl-4">• {tip}</p>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </div>
