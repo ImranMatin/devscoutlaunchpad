@@ -37,7 +37,10 @@ export interface OutreachDraft {
 
 export interface TailoredResume {
   summary: string;
-  skills: string[];
+  technicalSkills: {
+    category: string;
+    skills: string[];
+  }[];
   projects: string[];
   tips: string;
 }

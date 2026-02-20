@@ -16,7 +16,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const prompt = `You are a professional resume consultant. Given a candidate's resume data and a target opportunity, rewrite the resume to maximize compatibility.
+    const prompt = `You are a professional resume consultant. Given a candidate's resume data and a target opportunity, rewrite the resume sections to maximize compatibility.
 
 CANDIDATE RESUME:
 Name: ${resume.name}
@@ -31,11 +31,15 @@ Type: ${opportunity.type}
 Description: ${opportunity.description}
 Required Skills: ${opportunity.skills?.join(", ") || "Not specified"}
 
-Instructions:
-1. Write a professional summary (2-3 sentences) tailored to this specific role
-2. Reorder and augment the skills list, putting the most relevant skills first and adding any missing but implied skills
-3. Reframe each project description to emphasize transferable experience relevant to the role
-4. Provide a brief explanation of what you changed and why
+FORMAT THE OUTPUT LIKE A PROFESSIONAL RESUME with these sections:
+
+1. SUMMARY: Write a 2-3 sentence professional summary tailored to this specific role, highlighting relevant experience and skills.
+
+2. TECHNICAL SKILLS: Organize into 2-3 categories (e.g., "Product & UX", "AI & Technical Literacy", "Languages & Frameworks"). Each category should list relevant skills, prioritizing those matching the opportunity.
+
+3. PROJECTS: Reframe each project with bullet-point descriptions emphasizing transferable experience relevant to the target role. Use action verbs and quantify impact where possible.
+
+4. TIPS: Brief explanation of what you changed and why.
 
 You MUST respond using the tailor_resume tool.`;
 
@@ -57,20 +61,32 @@ You MUST respond using the tailor_resume tool.`;
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { type: "string", description: "Tailored professional summary" },
-                  skills: {
+                  summary: { type: "string", description: "Tailored professional summary (2-3 sentences)" },
+                  technicalSkills: {
                     type: "array",
-                    items: { type: "string" },
-                    description: "Reordered/augmented skills list",
+                    items: {
+                      type: "object",
+                      properties: {
+                        category: { type: "string", description: "Skill category name like 'Product & UX' or 'Languages & Frameworks'" },
+                        skills: {
+                          type: "array",
+                          items: { type: "string" },
+                          description: "Skills in this category",
+                        },
+                      },
+                      required: ["category", "skills"],
+                      additionalProperties: false,
+                    },
+                    description: "Categorized technical skills",
                   },
                   projects: {
                     type: "array",
                     items: { type: "string" },
-                    description: "Reframed project descriptions",
+                    description: "Reframed project descriptions with action verbs and quantified impact",
                   },
-                  tips: { type: "string", description: "Explanation of changes made" },
+                  tips: { type: "string", description: "Explanation of changes made and why" },
                 },
-                required: ["summary", "skills", "projects", "tips"],
+                required: ["summary", "technicalSkills", "projects", "tips"],
                 additionalProperties: false,
               },
             },

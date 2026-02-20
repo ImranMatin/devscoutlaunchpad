@@ -96,8 +96,9 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
+      const allSkills = tailoredResume.technicalSkills.flatMap(cat => cat.skills);
       await supabase.from("profiles").update({
-        skills: tailoredResume.skills as any,
+        skills: allSkills as any,
         projects: tailoredResume.projects as any,
       }).eq("user_id", session.user.id);
       toast({ title: "Saved!", description: "Tailored skills & projects saved to your profile." });
@@ -114,7 +115,10 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
 
   const copyTailoredResume = () => {
     if (!tailoredResume) return;
-    const full = `PROFESSIONAL SUMMARY\n${tailoredResume.summary}\n\nSKILLS\n${tailoredResume.skills.join(", ")}\n\nPROJECTS\n${tailoredResume.projects.join("\n")}`;
+    const skillsText = tailoredResume.technicalSkills
+      .map(cat => `${cat.category}: ${cat.skills.join(", ")}`)
+      .join("\n");
+    const full = `SUMMARY\n${tailoredResume.summary}\n\nTECHNICAL SKILLS\n${skillsText}\n\nPROJECTS & ACHIEVEMENTS\n${tailoredResume.projects.join("\n")}`;
     copyText(full, "Tailored resume");
   };
 
@@ -201,7 +205,7 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                 </Button>
               )}
 
-              {/* Tailored Resume Results */}
+              {/* Tailored Resume Results - Professional Format */}
               {tailoredResume && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -209,36 +213,45 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                       <FileText className="w-4 h-4" /> Tailored Resume
                     </p>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyTailoredResume}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyTailoredResume} title="Copy All">
                         <Copy className="w-3 h-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveToProfile}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveToProfile} title="Save to Profile">
                         <Save className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
 
+                  {/* Summary Section */}
                   <div className="glass-panel p-3">
-                    <p className="text-xs font-semibold text-foreground mb-1">Professional Summary</p>
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Summary</p>
                     <p className="text-xs text-foreground/80 leading-relaxed">{tailoredResume.summary}</p>
                   </div>
 
-                  <div className="glass-panel p-3">
-                    <p className="text-xs font-semibold text-foreground mb-2">Optimized Skills</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tailoredResume.skills.map((skill, i) => (
-                        <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary">{skill}</span>
-                      ))}
-                    </div>
+                  {/* Technical Skills Section - Categorized */}
+                  <div className="glass-panel p-3 space-y-3">
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Technical Skills</p>
+                    {tailoredResume.technicalSkills.map((cat, i) => (
+                      <div key={i}>
+                        <p className="text-[10px] font-semibold text-primary mb-1">{cat.category}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {cat.skills.map((skill, j) => (
+                            <span key={j} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary">{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
+                  {/* Projects & Achievements Section */}
                   <div className="glass-panel p-3 space-y-2">
-                    <p className="text-xs font-semibold text-foreground">Reframed Projects</p>
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Projects & Achievements</p>
                     {tailoredResume.projects.map((proj, i) => (
                       <p key={i} className="text-xs text-foreground/80 pl-4">• {proj}</p>
                     ))}
                   </div>
 
+                  {/* What Changed */}
                   <div className="glass-panel p-3">
                     <p className="text-xs font-semibold text-amber-400 mb-1">✨ What Changed</p>
                     <p className="text-xs text-foreground/80">{tailoredResume.tips}</p>
@@ -259,7 +272,6 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
             </Button>
           ) : (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-              {/* Pitch */}
               <div className="glass-panel p-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-foreground">Intro Pitch</p>
@@ -270,7 +282,6 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                 <p className="text-xs text-foreground/80 leading-relaxed">{outreach.pitch}</p>
               </div>
 
-              {/* LinkedIn */}
               <div className="glass-panel p-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-foreground flex items-center gap-1">
@@ -291,7 +302,6 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                 </a>
               </div>
 
-              {/* Email */}
               <div className="glass-panel p-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-semibold text-foreground flex items-center gap-1">

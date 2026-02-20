@@ -24,7 +24,7 @@ const AppSidebar = ({ activeTab, onTabChange }: AppSidebarProps) => {
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground tracking-tight">ScholarScout</h1>
+            <h1 className="text-lg font-bold text-foreground tracking-tight">DevScoutLaunchPad</h1>
             <p className="text-xs text-muted-foreground">AI Opportunity Engine</p>
           </div>
         </div>
