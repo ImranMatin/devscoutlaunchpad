@@ -1,0 +1,10 @@
+project_id = "yumkszkrhjyuojdqscnn"
+
+[functions.analyze-resume]
+verify_jwt = false
+
+[functions.smart-match]
+verify_jwt = false
+
+[functions.generate-outreach]
+verify_jwt = false
