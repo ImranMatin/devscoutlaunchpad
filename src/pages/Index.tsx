@@ -4,6 +4,8 @@ import AppSidebar from "@/components/AppSidebar";
 import OpportunityCard from "@/components/OpportunityCard";
 import ResumeUpload from "@/components/ResumeUpload";
 import AICommandCenter from "@/components/AICommandCenter";
+import ResourcesPage from "@/components/ResourcesPage";
+import AboutPage from "@/components/AboutPage";
 import { mockOpportunities } from "@/lib/opportunities";
 import { Opportunity, OpportunityType, ResumeData } from "@/lib/types";
 import { Input } from "@/components/ui/input";
@@ -63,6 +65,10 @@ const Index = () => {
     switch (activeTab) {
       case "resume":
         return <ResumeUpload resumeData={resumeData} onResumeProcessed={setResumeData} />;
+      case "resources":
+        return <ResourcesPage />;
+      case "about":
+        return <AboutPage />;
       case "search":
         return (
           <div className="space-y-4">

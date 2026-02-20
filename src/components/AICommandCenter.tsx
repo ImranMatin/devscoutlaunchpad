@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send, FileText, Save } from "lucide-react";
+import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send, FileText, Save, Download, Edit3, FileDown, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Opportunity, ResumeData, SmartMatchResult, OutreachDraft, TailoredResume } from "@/lib/types";
+import { Textarea } from "@/components/ui/textarea";
+import { Opportunity, ResumeData, SmartMatchResult, OutreachDraft, TailoredResume, CoverLetterData } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { downloadResumePDF, downloadResumeWord, downloadCoverLetterPDF, downloadCoverLetterWord } from "@/lib/resumeDownload";
 
 interface AICommandCenterProps {
   opportunity: Opportunity;
@@ -16,9 +18,16 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
   const [matchResult, setMatchResult] = useState<SmartMatchResult | null>(null);
   const [outreach, setOutreach] = useState<OutreachDraft | null>(null);
   const [tailoredResume, setTailoredResume] = useState<TailoredResume | null>(null);
+  const [coverLetter, setCoverLetter] = useState<CoverLetterData | null>(null);
   const [loadingMatch, setLoadingMatch] = useState(false);
   const [loadingOutreach, setLoadingOutreach] = useState(false);
   const [loadingTailor, setLoadingTailor] = useState(false);
+  const [loadingCoverLetter, setLoadingCoverLetter] = useState(false);
+  const [editingResume, setEditingResume] = useState(false);
+  const [editingCoverLetter, setEditingCoverLetter] = useState(false);
+  const [editedSummary, setEditedSummary] = useState("");
+  const [editedProjects, setEditedProjects] = useState("");
+  const [editedCoverLetter, setEditedCoverLetter] = useState("");
   const { toast } = useToast();
 
   const saveMatchHistory = async (result: SmartMatchResult) => {
@@ -51,7 +60,7 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
       await saveMatchHistory(result);
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to analyze match. Please try again.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to analyze match.", variant: "destructive" });
     } finally {
       setLoadingMatch(false);
     }
@@ -81,7 +90,10 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
         body: { resume: resumeData, opportunity },
       });
       if (error) throw error;
-      setTailoredResume(data as TailoredResume);
+      const result = data as TailoredResume;
+      setTailoredResume(result);
+      setEditedSummary(result.summary);
+      setEditedProjects(result.projects.join("\n"));
       toast({ title: "Resume Tailored!", description: "Your resume has been optimized for this role." });
     } catch (err) {
       console.error(err);
@@ -89,6 +101,43 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
     } finally {
       setLoadingTailor(false);
     }
+  };
+
+  const generateCoverLetter = async () => {
+    setLoadingCoverLetter(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-cover-letter", {
+        body: { resume: resumeData, opportunity, tailoredResume },
+      });
+      if (error) throw error;
+      const result = data as CoverLetterData;
+      setCoverLetter(result);
+      setEditedCoverLetter(result.coverLetter);
+      toast({ title: "Cover Letter Generated!", description: "Tailored to the job description." });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to generate cover letter.", variant: "destructive" });
+    } finally {
+      setLoadingCoverLetter(false);
+    }
+  };
+
+  const saveResumeEdits = () => {
+    if (!tailoredResume) return;
+    setTailoredResume({
+      ...tailoredResume,
+      summary: editedSummary,
+      projects: editedProjects.split("\n").filter(Boolean),
+    });
+    setEditingResume(false);
+    toast({ title: "Saved!", description: "Resume edits applied." });
+  };
+
+  const saveCoverLetterEdits = () => {
+    if (!coverLetter) return;
+    setCoverLetter({ ...coverLetter, coverLetter: editedCoverLetter });
+    setEditingCoverLetter(false);
+    toast({ title: "Saved!", description: "Cover letter edits applied." });
   };
 
   const saveToProfile = async () => {
@@ -122,13 +171,15 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
     copyText(full, "Tailored resume");
   };
 
+  const candidateName = resumeData?.name || "Candidate";
+
   return (
     <motion.div
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed right-0 top-0 h-screen w-[420px] sidebar-gradient border-l border-border z-50 flex flex-col overflow-hidden"
+      className="fixed right-0 top-0 h-screen w-[440px] sidebar-gradient border-l border-border z-50 flex flex-col overflow-hidden"
     >
       <div className="p-5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -196,71 +247,154 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                   ))}
                 </div>
               )}
-
-              {/* Tailor Resume Button */}
-              {!tailoredResume && (
-                <Button onClick={tailorResume} disabled={loadingTailor} className="w-full" variant="outline">
-                  {loadingTailor ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-                  Tailor My Resume
-                </Button>
-              )}
-
-              {/* Tailored Resume Results - Professional Format */}
-              {tailoredResume && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-primary flex items-center gap-1">
-                      <FileText className="w-4 h-4" /> Tailored Resume
-                    </p>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyTailoredResume} title="Copy All">
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveToProfile} title="Save to Profile">
-                        <Save className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Summary Section */}
-                  <div className="glass-panel p-3">
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Summary</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{tailoredResume.summary}</p>
-                  </div>
-
-                  {/* Technical Skills Section - Categorized */}
-                  <div className="glass-panel p-3 space-y-3">
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Technical Skills</p>
-                    {tailoredResume.technicalSkills.map((cat, i) => (
-                      <div key={i}>
-                        <p className="text-[10px] font-semibold text-primary mb-1">{cat.category}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {cat.skills.map((skill, j) => (
-                            <span key={j} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary">{skill}</span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Projects & Achievements Section */}
-                  <div className="glass-panel p-3 space-y-2">
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">Projects & Achievements</p>
-                    {tailoredResume.projects.map((proj, i) => (
-                      <p key={i} className="text-xs text-foreground/80 pl-4">• {proj}</p>
-                    ))}
-                  </div>
-
-                  {/* What Changed */}
-                  <div className="glass-panel p-3">
-                    <p className="text-xs font-semibold text-amber-400 mb-1">✨ What Changed</p>
-                    <p className="text-xs text-foreground/80">{tailoredResume.tips}</p>
-                  </div>
-                </motion.div>
-              )}
             </motion.div>
           )}
         </div>
+
+        {/* Tailor Resume - Always visible when resume exists */}
+        {resumeData && (
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Tailor Resume</h3>
+            {!tailoredResume ? (
+              <Button onClick={tailorResume} disabled={loadingTailor} className="w-full" variant="outline">
+                {loadingTailor ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                Tailor My Resume
+              </Button>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-primary flex items-center gap-1">
+                    <FileText className="w-4 h-4" /> Tailored Resume
+                  </p>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingResume(!editingResume); }} title="Edit">
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyTailoredResume} title="Copy All">
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveToProfile} title="Save to Profile">
+                      <Save className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {editingResume ? (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">Summary</p>
+                      <Textarea value={editedSummary} onChange={(e) => setEditedSummary(e.target.value)} className="text-xs bg-card/60 border-border min-h-[80px]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">Projects (one per line)</p>
+                      <Textarea value={editedProjects} onChange={(e) => setEditedProjects(e.target.value)} className="text-xs bg-card/60 border-border min-h-[100px]" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={saveResumeEdits}>Save Changes</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingResume(false)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="glass-panel p-3">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Summary</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{tailoredResume.summary}</p>
+                    </div>
+
+                    <div className="glass-panel p-3 space-y-3">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider">Technical Skills</p>
+                      {tailoredResume.technicalSkills.map((cat, i) => (
+                        <div key={i}>
+                          <p className="text-[10px] font-semibold text-primary mb-1">{cat.category}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {cat.skills.map((skill, j) => (
+                              <span key={j} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary">{skill}</span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="glass-panel p-3 space-y-2">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider">Projects & Achievements</p>
+                      {tailoredResume.projects.map((proj, i) => (
+                        <p key={i} className="text-xs text-foreground/80 pl-4">• {proj}</p>
+                      ))}
+                    </div>
+
+                    <div className="glass-panel p-3">
+                      <p className="text-xs font-semibold text-amber-400 mb-1">✨ What Changed</p>
+                      <p className="text-xs text-foreground/80">{tailoredResume.tips}</p>
+                    </div>
+                  </>
+                )}
+
+                {/* Download buttons */}
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadResumePDF(tailoredResume, candidateName)}>
+                    <Download className="w-3 h-3 mr-1" /> PDF
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadResumeWord(tailoredResume, candidateName)}>
+                    <FileDown className="w-3 h-3 mr-1" /> Word
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Cover Letter */}
+        {resumeData && (
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Cover Letter</h3>
+            {!coverLetter ? (
+              <Button onClick={generateCoverLetter} disabled={loadingCoverLetter} className="w-full" variant="outline">
+                {loadingCoverLetter ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PenLine className="w-4 h-4 mr-2" />}
+                Generate Cover Letter
+              </Button>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-primary flex items-center gap-1">
+                    <PenLine className="w-4 h-4" /> Cover Letter
+                  </p>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCoverLetter(!editingCoverLetter)} title="Edit">
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyText(coverLetter.coverLetter, "Cover letter")} title="Copy">
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {editingCoverLetter ? (
+                  <div className="space-y-3">
+                    <Textarea value={editedCoverLetter} onChange={(e) => setEditedCoverLetter(e.target.value)} className="text-xs bg-card/60 border-border min-h-[200px]" />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={saveCoverLetterEdits}>Save Changes</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingCoverLetter(false)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-panel p-3">
+                    <p className="text-[10px] text-muted-foreground mb-2">Subject: {coverLetter.subject}</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">{coverLetter.coverLetter}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadCoverLetterPDF(coverLetter.coverLetter, candidateName, opportunity.company)}>
+                    <Download className="w-3 h-3 mr-1" /> PDF
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadCoverLetterWord(coverLetter.coverLetter, candidateName, opportunity.company)}>
+                    <FileDown className="w-3 h-3 mr-1" /> Word
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Outreach Suite */}
         <div>

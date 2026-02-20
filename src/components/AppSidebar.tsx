@@ -1,4 +1,4 @@
-import { Search, FileText, Zap, Send, Brain, Home, LogOut, User } from "lucide-react";
+import { Search, FileText, Zap, Send, Brain, Home, LogOut, User, Globe, Info } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface AppSidebarProps {
@@ -11,6 +11,8 @@ const navItems = [
   { id: "resume", label: "Resume Brain", icon: Brain },
   { id: "search", label: "Live Search", icon: Search },
   { id: "outreach", label: "Outreach Suite", icon: Send },
+  { id: "resources", label: "Hackathons & Jobs", icon: Globe },
+  { id: "about", label: "About", icon: Info },
 ];
 
 const AppSidebar = ({ activeTab, onTabChange }: AppSidebarProps) => {
