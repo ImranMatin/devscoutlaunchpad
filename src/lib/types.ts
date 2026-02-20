@@ -1,10 +1,12 @@
 export type OpportunityType = "hackathon" | "internship" | "job";
+export type LocationType = "remote" | "hybrid" | "onsite";
 
 export interface Opportunity {
   id: string;
   title: string;
   company: string;
   type: OpportunityType;
+  location: LocationType;
   deadline: string; // ISO date
   description: string;
   skills: string[];
@@ -24,6 +26,7 @@ export interface SmartMatchResult {
   score: number;
   highlights: string[];
   skillGap: string;
+  resumeTips: string[];
 }
 
 export interface OutreachDraft {

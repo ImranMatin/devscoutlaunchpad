@@ -24,7 +24,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a career matching expert. Compare a candidate's resume profile against an opportunity and provide a compatibility analysis. Be specific and actionable. Adapt tone: more creative for hackathons, more professional for corporate roles.`
+            content: `You are a career matching expert. Compare a candidate's resume profile against an opportunity and provide a compatibility analysis. Be specific and actionable. Adapt tone: more creative for hackathons, more professional for corporate roles. Also provide concrete, actionable tips for how the candidate can tailor their resume to improve their match score for this specific opportunity.`
           },
           {
             role: "user",
@@ -38,10 +38,11 @@ OPPORTUNITY:
 Title: ${opportunity.title}
 Company: ${opportunity.company}
 Type: ${opportunity.type}
+Location: ${opportunity.location}
 Description: ${opportunity.description}
 Required Skills: ${opportunity.skills.join(", ")}
 
-Analyze the match.`
+Analyze the match. Provide a compatibility score, top highlights, a specific skill gap to bridge, and 3 actionable resume tips to improve the match score for this role.`
           },
         ],
         tools: [{
@@ -55,8 +56,9 @@ Analyze the match.`
                 score: { type: "number", description: "Compatibility score 0-100" },
                 highlights: { type: "array", items: { type: "string" }, description: "Top 3 reasons they match" },
                 skillGap: { type: "string", description: "One specific area to bridge" },
+                resumeTips: { type: "array", items: { type: "string" }, description: "3 actionable tips to tailor the resume and improve the match score for this specific role" },
               },
-              required: ["score", "highlights", "skillGap"],
+              required: ["score", "highlights", "skillGap", "resumeTips"],
               additionalProperties: false,
             },
           },
