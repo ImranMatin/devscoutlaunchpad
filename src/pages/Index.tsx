@@ -34,14 +34,19 @@ const Index = () => {
     const loadProfile = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, skills, projects, raw_text")
+        .select("*")
         .eq("user_id", user.id)
         .single();
       if (data && data.name) {
         setResumeData({
           name: data.name,
+          contactInfo: (data as any).contact_info || {},
+          links: (data as any).links || {},
           skills: (data.skills as string[]) || [],
           projects: (data.projects as string[]) || [],
+          experience: (data as any).experience || [],
+          education: (data as any).education || [],
+          hackathons: (data as any).hackathons || [],
           rawText: data.raw_text || "",
         });
       }

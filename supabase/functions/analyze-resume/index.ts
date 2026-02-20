@@ -24,30 +24,95 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a resume parser. Extract structured information from resume text. Return JSON with exactly these fields:
-- name: the person's full name
-- skills: array of technical skills (max 10)
-- projects: array of project names/titles (max 5)
+            content: `You are a resume parser. Extract ALL structured information from the resume exactly as written. Do NOT invent or fabricate any information. Only extract what is explicitly stated in the resume text.
+
+Extract these fields:
+- name: full name
+- contactInfo: { email, phone, location } - extract exactly as written
+- links: { portfolio, linkedin, github } - extract URLs or labels exactly as written
+- skills: array of ALL technical skills mentioned (preserve exact wording)
+- projects: array of project names/titles with their descriptions (preserve exact text)
+- experience: array of { company, role, dates, bullets } - preserve all bullet points exactly
+- education: array of { institution, degree, dates }
+- hackathons: array of { name, achievement, description } - preserve hackathon names and achievements exactly
 - rawText: brief 2-sentence summary of the candidate
 
-Be concise and accurate. Only return valid JSON, no markdown.`
+CRITICAL: Do NOT add any information that is not in the resume. Preserve all text exactly as written.`
           },
-          { role: "user", content: `Parse this resume (file: ${fileName}):\n\n${resumeText.substring(0, 5000)}` },
+          { role: "user", content: `Parse this resume (file: ${fileName}):\n\n${resumeText.substring(0, 8000)}` },
         ],
         tools: [{
           type: "function",
           function: {
             name: "parse_resume",
-            description: "Return structured resume data",
+            description: "Return structured resume data with all sections preserved exactly",
             parameters: {
               type: "object",
               properties: {
                 name: { type: "string" },
+                contactInfo: {
+                  type: "object",
+                  properties: {
+                    email: { type: "string" },
+                    phone: { type: "string" },
+                    location: { type: "string" },
+                  },
+                  additionalProperties: false,
+                },
+                links: {
+                  type: "object",
+                  properties: {
+                    portfolio: { type: "string" },
+                    linkedin: { type: "string" },
+                    github: { type: "string" },
+                  },
+                  additionalProperties: false,
+                },
                 skills: { type: "array", items: { type: "string" } },
                 projects: { type: "array", items: { type: "string" } },
+                experience: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      company: { type: "string" },
+                      role: { type: "string" },
+                      dates: { type: "string" },
+                      bullets: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["company", "role", "dates", "bullets"],
+                    additionalProperties: false,
+                  },
+                },
+                education: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      institution: { type: "string" },
+                      degree: { type: "string" },
+                      dates: { type: "string" },
+                    },
+                    required: ["institution", "degree", "dates"],
+                    additionalProperties: false,
+                  },
+                },
+                hackathons: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      achievement: { type: "string" },
+                      description: { type: "string" },
+                    },
+                    required: ["name", "achievement", "description"],
+                    additionalProperties: false,
+                  },
+                },
                 rawText: { type: "string" },
               },
-              required: ["name", "skills", "projects", "rawText"],
+              required: ["name", "contactInfo", "links", "skills", "projects", "experience", "education", "hackathons", "rawText"],
               additionalProperties: false,
             },
           },
