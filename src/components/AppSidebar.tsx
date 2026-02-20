@@ -1,4 +1,5 @@
-import { Search, FileText, Zap, Send, Brain, Home } from "lucide-react";
+import { Search, FileText, Zap, Send, Brain, Home, LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AppSidebarProps {
   activeTab: string;
@@ -13,6 +14,8 @@ const navItems = [
 ];
 
 const AppSidebar = ({ activeTab, onTabChange }: AppSidebarProps) => {
+  const { user, signOut } = useAuth();
+
   return (
     <aside className="w-64 sidebar-gradient border-r border-border flex flex-col h-screen sticky top-0">
       <div className="p-6 border-b border-border">
@@ -44,7 +47,20 @@ const AppSidebar = ({ activeTab, onTabChange }: AppSidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border space-y-3">
+        {user && (
+          <div className="glass-panel p-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-foreground truncate">{user.email}</p>
+            </div>
+            <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="Sign out">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <div className="glass-panel p-3 text-center">
           <p className="text-xs text-muted-foreground">Upload your resume to unlock</p>
           <p className="text-xs font-semibold text-primary mt-1">Smart Match Scores</p>

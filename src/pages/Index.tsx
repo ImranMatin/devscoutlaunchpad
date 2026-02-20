@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Filter } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import OpportunityCard from "@/components/OpportunityCard";
@@ -8,6 +8,8 @@ import { mockOpportunities } from "@/lib/opportunities";
 import { Opportunity, OpportunityType, ResumeData } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const filterTabs: { label: string; value: OpportunityType | "all" }[] = [
   { label: "All", value: "all" },
@@ -17,11 +19,33 @@ const filterTabs: { label: string; value: OpportunityType | "all" }[] = [
 ];
 
 const Index = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("feed");
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [filter, setFilter] = useState<OpportunityType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Load saved profile on mount
+  useEffect(() => {
+    if (!user) return;
+    const loadProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, skills, projects, raw_text")
+        .eq("user_id", user.id)
+        .single();
+      if (data && data.name) {
+        setResumeData({
+          name: data.name,
+          skills: (data.skills as string[]) || [],
+          projects: (data.projects as string[]) || [],
+          rawText: data.raw_text || "",
+        });
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   const opportunities = useMemo(() => {
     let filtered = mockOpportunities;
