@@ -5,6 +5,7 @@ import { ResumeData } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { extractTextFromPDF } from "@/lib/pdfExtract";
 
 interface ResumeUploadProps {
   resumeData: ResumeData | null;
@@ -41,7 +42,7 @@ const ResumeUpload = ({ resumeData, onResumeProcessed }: ResumeUploadProps) => {
     setIsProcessing(true);
 
     try {
-      const text = await file.text();
+      const text = await extractTextFromPDF(file);
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { resumeText: text, fileName: file.name },
       });
