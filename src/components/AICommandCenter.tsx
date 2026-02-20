@@ -19,6 +19,23 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
   const [loadingOutreach, setLoadingOutreach] = useState(false);
   const { toast } = useToast();
 
+  const saveMatchHistory = async (result: SmartMatchResult) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      await supabase.from("match_history").insert({
+        user_id: session.user.id,
+        opportunity_id: opportunity.id,
+        opportunity_title: opportunity.title,
+        score: result.score,
+        highlights: result.highlights as any,
+        skill_gap: result.skillGap,
+      });
+    } catch (err) {
+      console.error("Failed to save match history:", err);
+    }
+  };
+
   const runSmartMatch = async () => {
     if (!resumeData) return;
     setLoadingMatch(true);
@@ -27,7 +44,9 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
         body: { resume: resumeData, opportunity },
       });
       if (error) throw error;
-      setMatchResult(data as SmartMatchResult);
+      const result = data as SmartMatchResult;
+      setMatchResult(result);
+      await saveMatchHistory(result);
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to analyze match. Please try again.", variant: "destructive" });

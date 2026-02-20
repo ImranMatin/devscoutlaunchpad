@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ResumeData } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ResumeUploadProps {
   resumeData: ResumeData | null;
@@ -11,9 +12,20 @@ interface ResumeUploadProps {
 }
 
 const ResumeUpload = ({ resumeData, onResumeProcessed }: ResumeUploadProps) => {
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+
+  const saveProfile = async (data: ResumeData) => {
+    if (!user) return;
+    await supabase.from("profiles").update({
+      name: data.name,
+      skills: data.skills as any,
+      projects: data.projects as any,
+      raw_text: data.rawText,
+    }).eq("user_id", user.id);
+  };
 
   const processFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -25,26 +37,26 @@ const ResumeUpload = ({ resumeData, onResumeProcessed }: ResumeUploadProps) => {
 
     try {
       const text = await file.text();
-
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { resumeText: text, fileName: file.name },
       });
-
       if (error) throw error;
-      onResumeProcessed(data as ResumeData);
+      const resumeResult = data as ResumeData;
+      onResumeProcessed(resumeResult);
+      await saveProfile(resumeResult);
     } catch (err) {
       console.error("Resume processing error:", err);
-      // Fallback: extract basic info
-      onResumeProcessed({
+      const fallback: ResumeData = {
         name: file.name.replace(".pdf", ""),
         skills: ["Unable to parse - please try again"],
         projects: [],
         rawText: "",
-      });
+      };
+      onResumeProcessed(fallback);
     } finally {
       setIsProcessing(false);
     }
-  }, [onResumeProcessed]);
+  }, [onResumeProcessed, user]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
