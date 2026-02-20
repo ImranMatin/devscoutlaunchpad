@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send, FileText, Save, Download, Edit3, FileDown, PenLine } from "lucide-react";
+import { X, Sparkles, Copy, Mail, Linkedin, Loader2, CheckCircle2, Send, FileText, Save, Download, Edit3, FileDown, PenLine, MapPin, Phone, Globe, Github, Briefcase, GraduationCap, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Opportunity, ResumeData, SmartMatchResult, OutreachDraft, TailoredResume, CoverLetterData } from "@/lib/types";
@@ -296,6 +296,22 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                   </div>
                 ) : (
                   <>
+                    {/* Contact & Links */}
+                    {(tailoredResume.contactInfo?.email || tailoredResume.links?.linkedin) && (
+                      <div className="glass-panel p-3">
+                        <div className="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                          {tailoredResume.contactInfo?.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{tailoredResume.contactInfo.location}</span>}
+                          {tailoredResume.contactInfo?.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{tailoredResume.contactInfo.phone}</span>}
+                          {tailoredResume.contactInfo?.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{tailoredResume.contactInfo.email}</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[10px] text-primary mt-1">
+                          {tailoredResume.links?.portfolio && <span className="flex items-center gap-1"><Globe className="w-3 h-3" />Portfolio</span>}
+                          {tailoredResume.links?.linkedin && <span className="flex items-center gap-1"><Linkedin className="w-3 h-3" />LinkedIn</span>}
+                          {tailoredResume.links?.github && <span className="flex items-center gap-1"><Github className="w-3 h-3" />GitHub</span>}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="glass-panel p-3">
                       <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-2">Summary</p>
                       <p className="text-xs text-foreground/80 leading-relaxed">{tailoredResume.summary}</p>
@@ -315,12 +331,63 @@ const AICommandCenter = ({ opportunity, resumeData, onClose }: AICommandCenterPr
                       ))}
                     </div>
 
+                    {/* Experience */}
+                    {tailoredResume.experience?.length > 0 && (
+                      <div className="glass-panel p-3 space-y-2">
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1">
+                          <Briefcase className="w-3 h-3" /> Relevant Experience
+                        </p>
+                        {tailoredResume.experience.map((exp, i) => (
+                          <div key={i} className="pl-2 border-l border-primary/30">
+                            <p className="text-xs font-semibold text-foreground">{exp.role}</p>
+                            <p className="text-[10px] text-muted-foreground">{exp.company} | {exp.dates}</p>
+                            <ul className="mt-0.5 space-y-0.5">
+                              {exp.bullets.map((b, j) => (
+                                <li key={j} className="text-[10px] text-foreground/80 pl-3">• {b}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="glass-panel p-3 space-y-2">
                       <p className="text-xs font-bold text-foreground uppercase tracking-wider">Projects & Achievements</p>
                       {tailoredResume.projects.map((proj, i) => (
                         <p key={i} className="text-xs text-foreground/80 pl-4">• {proj}</p>
                       ))}
                     </div>
+
+                    {/* Hackathons */}
+                    {tailoredResume.hackathons?.length > 0 && (
+                      <div className="glass-panel p-3 space-y-2">
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1">
+                          <Trophy className="w-3 h-3" /> Hackathon Achievements
+                        </p>
+                        {tailoredResume.hackathons.map((h, i) => (
+                          <div key={i} className="pl-2 border-l border-amber-400/30">
+                            <p className="text-xs font-semibold text-foreground">{h.name}</p>
+                            <p className="text-[10px] text-amber-400">{h.achievement}</p>
+                            <p className="text-[10px] text-foreground/70">{h.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Education */}
+                    {tailoredResume.education?.length > 0 && (
+                      <div className="glass-panel p-3 space-y-1">
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1">
+                          <GraduationCap className="w-3 h-3" /> Education
+                        </p>
+                        {tailoredResume.education.map((edu, i) => (
+                          <div key={i}>
+                            <p className="text-xs text-foreground">{edu.institution}</p>
+                            <p className="text-[10px] text-muted-foreground">{edu.degree} | {edu.dates}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <div className="glass-panel p-3">
                       <p className="text-xs font-semibold text-amber-400 mb-1">✨ What Changed</p>

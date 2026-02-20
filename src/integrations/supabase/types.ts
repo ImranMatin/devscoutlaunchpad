@@ -57,7 +57,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          contact_info: Json | null
           created_at: string
+          education: Json | null
+          experience: Json | null
+          hackathons: Json | null
+          links: Json | null
           name: string | null
           projects: Json
           raw_text: string | null
@@ -66,7 +71,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          contact_info?: Json | null
           created_at?: string
+          education?: Json | null
+          experience?: Json | null
+          hackathons?: Json | null
+          links?: Json | null
           name?: string | null
           projects?: Json
           raw_text?: string | null
@@ -75,7 +85,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          contact_info?: Json | null
           created_at?: string
+          education?: Json | null
+          experience?: Json | null
+          hackathons?: Json | null
+          links?: Json | null
           name?: string | null
           projects?: Json
           raw_text?: string | null

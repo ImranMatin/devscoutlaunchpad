@@ -15,10 +15,46 @@ export interface Opportunity {
   matchScore?: number;
 }
 
+export interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
+export interface ResumeLinks {
+  portfolio?: string;
+  linkedin?: string;
+  github?: string;
+}
+
+export interface ExperienceEntry {
+  company: string;
+  role: string;
+  dates: string;
+  bullets: string[];
+}
+
+export interface EducationEntry {
+  institution: string;
+  degree: string;
+  dates: string;
+}
+
+export interface HackathonEntry {
+  name: string;
+  achievement: string;
+  description: string;
+}
+
 export interface ResumeData {
   name: string;
+  contactInfo: ContactInfo;
+  links: ResumeLinks;
   skills: string[];
   projects: string[];
+  experience: ExperienceEntry[];
+  education: EducationEntry[];
+  hackathons: HackathonEntry[];
   rawText: string;
 }
 
@@ -41,7 +77,12 @@ export interface TailoredResume {
     category: string;
     skills: string[];
   }[];
+  experience: ExperienceEntry[];
   projects: string[];
+  hackathons: HackathonEntry[];
+  education: EducationEntry[];
+  contactInfo: ContactInfo;
+  links: ResumeLinks;
   tips: string;
 }
 

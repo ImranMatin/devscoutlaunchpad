@@ -16,11 +16,29 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const prompt = `You are a professional resume consultant. Given a candidate's resume data and a target opportunity, rewrite the resume sections to maximize compatibility.
+    const experienceText = (resume.experience || [])
+      .map((e: any) => `${e.role} at ${e.company} (${e.dates}): ${e.bullets?.join("; ")}`)
+      .join("\n");
+    const educationText = (resume.education || [])
+      .map((e: any) => `${e.institution} - ${e.degree} (${e.dates})`)
+      .join("\n");
+    const hackathonText = (resume.hackathons || [])
+      .map((h: any) => `${h.name} - ${h.achievement}: ${h.description}`)
+      .join("\n");
+
+    const prompt = `You are a professional resume consultant. Given a candidate's REAL resume data and a target opportunity, tailor ONLY the summary and technical skills to match the role. PRESERVE all other sections EXACTLY as they are.
 
 CANDIDATE RESUME:
 Name: ${resume.name}
+Contact: ${resume.contactInfo?.email || ""} | ${resume.contactInfo?.phone || ""} | ${resume.contactInfo?.location || ""}
+Links: Portfolio: ${resume.links?.portfolio || "N/A"} | LinkedIn: ${resume.links?.linkedin || "N/A"} | GitHub: ${resume.links?.github || "N/A"}
 Skills: ${resume.skills?.join(", ") || "None listed"}
+Experience:
+${experienceText || "None"}
+Education:
+${educationText || "None"}
+Hackathons:
+${hackathonText || "None"}
 Projects: ${resume.projects?.join("; ") || "None listed"}
 Raw Text: ${resume.rawText?.substring(0, 2000) || "N/A"}
 
@@ -31,15 +49,17 @@ Type: ${opportunity.type}
 Description: ${opportunity.description}
 Required Skills: ${opportunity.skills?.join(", ") || "Not specified"}
 
-FORMAT THE OUTPUT LIKE A PROFESSIONAL RESUME with these sections:
+INSTRUCTIONS:
+1. SUMMARY: Write a tailored 2-3 sentence professional summary for this specific role.
+2. TECHNICAL SKILLS: Reorganize the candidate's EXISTING skills into 2-3 categories, prioritizing those matching the opportunity. Do NOT invent new skills.
+3. EXPERIENCE: Return the candidate's experience entries EXACTLY as provided. Do NOT modify, add, or remove any experience.
+4. PROJECTS: Return the candidate's projects EXACTLY as provided. Do NOT modify, add, or remove any projects.
+5. HACKATHONS: Return the candidate's hackathon entries EXACTLY as provided.
+6. EDUCATION: Return the candidate's education EXACTLY as provided.
+7. CONTACT INFO & LINKS: Pass through exactly as provided.
+8. TIPS: Brief explanation of what you tailored and why.
 
-1. SUMMARY: Write a 2-3 sentence professional summary tailored to this specific role, highlighting relevant experience and skills.
-
-2. TECHNICAL SKILLS: Organize into 2-3 categories (e.g., "Product & UX", "AI & Technical Literacy", "Languages & Frameworks"). Each category should list relevant skills, prioritizing those matching the opportunity.
-
-3. PROJECTS: Reframe each project with bullet-point descriptions emphasizing transferable experience relevant to the target role. Use action verbs and quantify impact where possible.
-
-4. TIPS: Brief explanation of what you changed and why.
+CRITICAL: Do NOT fabricate any projects, experience, hackathons, or education. Only tailor the summary and skill categorization.
 
 You MUST respond using the tailor_resume tool.`;
 
@@ -57,7 +77,7 @@ You MUST respond using the tailor_resume tool.`;
             type: "function",
             function: {
               name: "tailor_resume",
-              description: "Return the tailored resume data",
+              description: "Return the tailored resume data preserving all original sections",
               parameters: {
                 type: "object",
                 properties: {
@@ -67,26 +87,75 @@ You MUST respond using the tailor_resume tool.`;
                     items: {
                       type: "object",
                       properties: {
-                        category: { type: "string", description: "Skill category name like 'Product & UX' or 'Languages & Frameworks'" },
-                        skills: {
-                          type: "array",
-                          items: { type: "string" },
-                          description: "Skills in this category",
-                        },
+                        category: { type: "string" },
+                        skills: { type: "array", items: { type: "string" } },
                       },
                       required: ["category", "skills"],
                       additionalProperties: false,
                     },
-                    description: "Categorized technical skills",
                   },
-                  projects: {
+                  experience: {
                     type: "array",
-                    items: { type: "string" },
-                    description: "Reframed project descriptions with action verbs and quantified impact",
+                    items: {
+                      type: "object",
+                      properties: {
+                        company: { type: "string" },
+                        role: { type: "string" },
+                        dates: { type: "string" },
+                        bullets: { type: "array", items: { type: "string" } },
+                      },
+                      required: ["company", "role", "dates", "bullets"],
+                      additionalProperties: false,
+                    },
                   },
-                  tips: { type: "string", description: "Explanation of changes made and why" },
+                  projects: { type: "array", items: { type: "string" } },
+                  hackathons: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        achievement: { type: "string" },
+                        description: { type: "string" },
+                      },
+                      required: ["name", "achievement", "description"],
+                      additionalProperties: false,
+                    },
+                  },
+                  education: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        institution: { type: "string" },
+                        degree: { type: "string" },
+                        dates: { type: "string" },
+                      },
+                      required: ["institution", "degree", "dates"],
+                      additionalProperties: false,
+                    },
+                  },
+                  contactInfo: {
+                    type: "object",
+                    properties: {
+                      email: { type: "string" },
+                      phone: { type: "string" },
+                      location: { type: "string" },
+                    },
+                    additionalProperties: false,
+                  },
+                  links: {
+                    type: "object",
+                    properties: {
+                      portfolio: { type: "string" },
+                      linkedin: { type: "string" },
+                      github: { type: "string" },
+                    },
+                    additionalProperties: false,
+                  },
+                  tips: { type: "string" },
                 },
-                required: ["summary", "technicalSkills", "projects", "tips"],
+                required: ["summary", "technicalSkills", "experience", "projects", "hackathons", "education", "contactInfo", "links", "tips"],
                 additionalProperties: false,
               },
             },
@@ -99,14 +168,12 @@ You MUST respond using the tailor_resume tool.`;
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
