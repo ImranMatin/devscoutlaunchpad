@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,13 +7,39 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function validateOpportunity(opp: any): boolean {
+  return opp && typeof opp === "object" && typeof opp.title === "string" && typeof opp.company === "string" && typeof opp.description === "string";
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { resume, opportunity, tailoredResume } = await req.json();
+    // Auth check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Input validation
+    const body = await req.json();
+    const { resume, opportunity, tailoredResume } = body;
+    if (!validateOpportunity(opportunity)) {
+      return new Response(JSON.stringify({ error: "Invalid input: opportunity must include title, company, and description" }), { status: 400, headers: corsHeaders });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -29,17 +56,17 @@ serve(async (req) => {
     const prompt = `You are a professional career coach. Write a compelling, personalized cover letter for the following candidate and job opportunity.
 
 CANDIDATE INFO:
-Name: ${resume?.name || "Candidate"}
-Summary: ${summaryInfo}
-Skills: ${skillsInfo}
-Projects/Achievements: ${projectsInfo}
+Name: ${String(resume?.name || "Candidate").substring(0, 200)}
+Summary: ${String(summaryInfo).substring(0, 3000)}
+Skills: ${String(skillsInfo).substring(0, 2000)}
+Projects/Achievements: ${String(projectsInfo).substring(0, 2000)}
 
 TARGET OPPORTUNITY:
-Title: ${opportunity.title}
-Company: ${opportunity.company}
-Type: ${opportunity.type}
-Description: ${opportunity.description}
-Required Skills: ${opportunity.skills?.join(", ") || "Not specified"}
+Title: ${String(opportunity.title).substring(0, 200)}
+Company: ${String(opportunity.company).substring(0, 200)}
+Type: ${String(opportunity.type || "").substring(0, 100)}
+Description: ${String(opportunity.description).substring(0, 3000)}
+Required Skills: ${(opportunity.skills || []).map(String).join(", ").substring(0, 2000)}
 
 INSTRUCTIONS:
 - Write a professional cover letter (3-4 paragraphs)
@@ -47,7 +74,7 @@ INSTRUCTIONS:
 - Body: Connect candidate's skills and projects to the job requirements
 - Closing: Express enthusiasm and call to action
 - Tone: Professional but authentic, no clichés
-- Do NOT use "Dear Hiring Manager" - use "Dear ${opportunity.company} Team"
+- Do NOT use "Dear Hiring Manager" - use "Dear ${String(opportunity.company).substring(0, 200)} Team"
 - Keep it under 400 words
 
 You MUST respond using the generate_cover_letter tool.`;
@@ -84,20 +111,7 @@ You MUST respond using the generate_cover_letter tool.`;
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", response.status);
       throw new Error("AI gateway error");
     }
 
@@ -112,7 +126,7 @@ You MUST respond using the generate_cover_letter tool.`;
     });
   } catch (e) {
     console.error("generate-cover-letter error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Request failed. Please try again." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
