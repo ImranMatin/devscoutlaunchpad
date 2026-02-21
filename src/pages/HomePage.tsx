@@ -34,6 +34,9 @@ const HomePage = () => {
             <span className="text-lg font-bold text-foreground">DevScoutLaunchPad</span>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/about">
+              <Button variant="ghost" size="sm">About</Button>
+            </Link>
             <Link to="/contact">
               <Button variant="ghost" size="sm">Contact</Button>
             </Link>
