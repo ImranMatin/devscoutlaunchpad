@@ -1,5 +1,5 @@
-import { Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
@@ -9,9 +9,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-primary" />
-              </div>
+              <img src={logo} alt="DevScoutLaunchPad logo" className="w-8 h-8 rounded-lg" />
               <span className="text-lg font-bold text-foreground">DevScoutLaunchPad</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -35,14 +33,14 @@ const Footer = () => {
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-foreground">Connect</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">Contribute on GitHub</a></li>
-              <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">Connect on LinkedIn</a></li>
+              <li><a href="https://github.com/ImranMatin/devscoutlaunchpad" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">Contribute on GitHub</a></li>
+              <li><a href="https://www.linkedin.com/in/imran-matin17/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">Connect on LinkedIn</a></li>
             </ul>
           </div>
         </div>
 
         <div className="mt-10 pt-6 border-t border-border text-center">
-          <p className="text-xs text-muted-foreground">© 2026 CodeMaster Academy. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© 2026 DevScoutLaunchPad. All rights reserved.</p>
         </div>
       </div>
     </footer>

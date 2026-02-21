@@ -1,8 +1,9 @@
-import { Zap, Brain, Target, Rocket, Send, FileText, ChevronRight } from "lucide-react";
+import { Brain, Target, Rocket, Send, FileText, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Footer from "@/components/Footer";
+import logo from "@/assets/logo.png";
 
 const features = [
   { icon: Brain, title: "Resume Brain", desc: "AI-powered parsing that deeply understands your skills, projects, and experience." },
@@ -27,12 +28,10 @@ const HomePage = () => {
       {/* Nav */}
       <header className="border-b border-border bg-card/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary" />
-            </div>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="DevScoutLaunchPad logo" className="w-9 h-9 rounded-lg" />
             <span className="text-lg font-bold text-foreground">DevScoutLaunchPad</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <Link to="/about">
               <Button variant="ghost" size="sm">About</Button>
@@ -51,7 +50,7 @@ const HomePage = () => {
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
         <div className="max-w-3xl space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
-            <Zap className="w-3 h-3" /> AI-Powered Opportunity Engine
+            <Rocket className="w-3 h-3" /> AI-Powered Opportunity Engine
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground leading-tight tracking-tight">
             Your Launchpad to <span className="text-gradient">Developer Opportunities</span>
