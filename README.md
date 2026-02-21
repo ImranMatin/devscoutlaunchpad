@@ -66,13 +66,14 @@ DevScoutLaunchPad solves this by combining:
 - **✉️ Cover Letter Generation** — AI-crafted cover letters specific to each opportunity.
 - **📨 Outreach Suite** — Generate personalized cold emails, LinkedIn messages, and elevator pitches.
 - **📄 Export** — Download tailored resumes and cover letters as PDF or Word documents.
-- **🔐 Authentication** — Secure email/password sign-up and sign-in with email verification.
+- **🔐 Authentication** — Secure email/password sign-up and sign-in with email verification, forgot password flow, and password reset page.
 - **🌐 Hackathons & Jobs Resource Hub** — External links to popular hackathon and job platforms.
-- **📱 Responsive Sidebar Navigation** — Clean, intuitive navigation across all features.
-- **🏠 Landing Page** — Public home page with hero section, feature grid, FAQ, and footer with company/connect links.
+- **📱 Responsive Sidebar Navigation** — Clean, intuitive navigation across all features with sign-out button that redirects to home page.
+- **🏠 Landing Page** — Public home page with hero section, feature grid, FAQ, and footer with company/connect links. Navbar with persistent links to About, Contact, and Get Started.
 - **📞 Contact Page** — Public contact form with email and community links for user inquiries.
 - **ℹ️ About Page** — Public page showcasing the platform's vision, mission, and feature offerings.
-- **🦶 Global Footer** — Consistent footer across public pages with Company links (About, Contact, Privacy, Terms, License) and Connect links (GitHub, LinkedIn), branded for CodeMaster Academy.
+- **🦶 Global Footer** — Consistent footer across public pages with Company links (About, Contact, Privacy, Terms, License) and Connect links ([GitHub](https://github.com/ImranMatin/devscoutlaunchpad), [LinkedIn](https://www.linkedin.com/in/imran-matin17/)), branded as DevScoutLaunchPad.
+- **🖼️ Custom Logo** — DevScoutLaunchPad rocket logo displayed across all pages (navbar, auth, sidebar, footer).
 
 ---
 
@@ -125,10 +126,11 @@ DevScoutLaunchPad solves this by combining:
 │   │   └── utils.ts                 # Utility functions
 │   ├── pages/
 │   │   ├── About.tsx                # Public about page (wraps AboutPage component)
-│   │   ├── Auth.tsx                 # Sign-in / Sign-up page
+│   │   ├── Auth.tsx                 # Sign-in / Sign-up / Forgot password page
 │   │   ├── Contact.tsx              # Public contact page with form
 │   │   ├── HomePage.tsx             # Public landing page (hero, features, FAQ, footer)
 │   │   ├── Index.tsx                # Main dashboard page
+│   │   ├── ResetPassword.tsx        # Password reset page (linked from email)
 │   │   └── NotFound.tsx             # 404 page
 │   ├── App.tsx                      # Root app with routes
 │   ├── main.tsx                     # Entry point
@@ -243,7 +245,9 @@ User clicks opportunity → smart-match / tailor-resume / generate-cover-letter 
 
 - **Row Level Security (RLS)** — All database tables have RLS enabled. Users can only read and write their own data.
 - **Email Verification** — Users must verify their email address before signing in (auto-confirm is disabled).
-- **Protected Routes** — All application routes (except `/auth`) are wrapped in `ProtectedRoute`, redirecting unauthenticated users to sign in.
+- **Forgot Password & Reset** — Users can request a password reset link via email and set a new password on the `/reset-password` page.
+- **Protected Routes** — All application routes (except `/`, `/auth`, `/about`, `/contact`, `/reset-password`) are wrapped in `ProtectedRoute`, redirecting unauthenticated users to sign in.
+- **Sign-Out Redirect** — Signing out redirects users to the home page.
 - **No Direct API Key Exposure** — AI model calls are made through backend edge functions; no API keys are exposed to the client.
 - **Input Validation** — Resume parsing includes safeguards against empty or malformed uploads.
 

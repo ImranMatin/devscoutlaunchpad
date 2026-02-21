@@ -1,4 +1,5 @@
-import { Search, FileText, Zap, Send, Brain, Home, LogOut, User, Globe, Info } from "lucide-react";
+import { Search, FileText, Send, Brain, Home, LogOut, User, Globe, Info } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
 interface AppSidebarProps {
@@ -22,9 +23,7 @@ const AppSidebar = ({ activeTab, onTabChange }: AppSidebarProps) => {
     <aside className="w-64 sidebar-gradient border-r border-border flex flex-col h-screen sticky top-0">
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-primary" />
-          </div>
+          <img src={logo} alt="DevScoutLaunchPad logo" className="w-9 h-9 rounded-lg" />
           <div>
             <h1 className="text-lg font-bold text-foreground tracking-tight">DevScoutLaunchPad</h1>
             <p className="text-xs text-muted-foreground">AI Opportunity Engine</p>

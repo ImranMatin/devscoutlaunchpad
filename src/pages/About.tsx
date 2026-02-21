@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { Zap, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AboutPage from "@/components/AboutPage";
 import Footer from "@/components/Footer";
+import logo from "@/assets/logo.png";
 
 const About = () => {
   return (
@@ -10,9 +11,7 @@ const About = () => {
       <header className="border-b border-border bg-card/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary" />
-            </div>
+            <img src={logo} alt="DevScoutLaunchPad logo" className="w-9 h-9 rounded-lg" />
             <span className="text-lg font-bold text-foreground">DevScoutLaunchPad</span>
           </Link>
           <div className="flex items-center gap-3">
