@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion";
 import Footer from "@/components/Footer";
 import PublicNavbar from "@/components/PublicNavbar";
+import heroBanner from "@/assets/hero-banner.png";
 
 const features = [
   { icon: Brain, title: "Resume Brain", desc: "AI-powered parsing that deeply understands your skills, projects, and experience." },
@@ -46,10 +47,18 @@ const HomePage = () => {
           transition={{ duration: 0.6 }}
           className="max-w-3xl space-y-6 relative z-10"
         >
+          <motion.img
+            src={heroBanner}
+            alt="DevScoutLaunchPad banner"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="w-64 h-64 md:w-80 md:h-80 rounded-full object-cover mx-auto shadow-[0_0_60px_-15px_hsl(var(--primary)/0.4)]"
+          />
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium"
           >
             <Sparkles className="w-3 h-3" /> AI-Powered Opportunity Engine

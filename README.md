@@ -69,7 +69,7 @@ DevScoutLaunchPad solves this by combining:
 - **🔐 Authentication** — Secure email/password sign-up and sign-in with email verification, forgot password flow, and password reset page.
 - **🌐 Hackathons & Jobs Resource Hub** — External links to popular hackathon and job platforms.
 - **📱 Responsive Sidebar Navigation** — Clean, intuitive navigation across all features with sign-out button that redirects to home page.
-- **🏠 Landing Page** — Public home page with hero section, feature grid, FAQ, and footer with company/connect links. Navbar with persistent links to About, Contact, and Get Started.
+- **🏠 Landing Page** — Public home page with hero banner image, hero section, feature grid, FAQ, and footer with company/connect links. Navbar with persistent links to Home, About, Contact, and Get Started.
 - **📞 Contact Page** — Public contact form with email and community links for user inquiries.
 - **ℹ️ About Page** — Public page showcasing the platform's vision, mission, and feature offerings.
 - **🦶 Global Footer** — Consistent footer across public pages with Company links (About, Contact, Privacy, Terms, License) and Connect links ([GitHub](https://github.com/ImranMatin/devscoutlaunchpad), [LinkedIn](https://www.linkedin.com/in/imran-matin17/)), branded as DevScoutLaunchPad.
