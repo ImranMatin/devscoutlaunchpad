@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 
 const navLinks = [
+  { to: "/", label: "Home" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
