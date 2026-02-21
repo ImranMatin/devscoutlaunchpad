@@ -69,6 +69,10 @@ DevScoutLaunchPad solves this by combining:
 - **🔐 Authentication** — Secure email/password sign-up and sign-in with email verification.
 - **🌐 Hackathons & Jobs Resource Hub** — External links to popular hackathon and job platforms.
 - **📱 Responsive Sidebar Navigation** — Clean, intuitive navigation across all features.
+- **🏠 Landing Page** — Public home page with hero section, feature grid, FAQ, and footer with company/connect links.
+- **📞 Contact Page** — Public contact form with email and community links for user inquiries.
+- **ℹ️ About Page** — Public page showcasing the platform's vision, mission, and feature offerings.
+- **🦶 Global Footer** — Consistent footer across public pages with Company links (About, Contact, Privacy, Terms, License) and Connect links (GitHub, LinkedIn), branded for CodeMaster Academy.
 
 ---
 
@@ -99,6 +103,7 @@ DevScoutLaunchPad solves this by combining:
 │   │   ├── AboutPage.tsx            # About page content
 │   │   ├── AICommandCenter.tsx      # AI features panel (match, tailor, cover letter, outreach)
 │   │   ├── AppSidebar.tsx           # Main sidebar navigation
+│   │   ├── Footer.tsx               # Global footer (Company links, Connect links, CodeMaster Academy branding)
 │   │   ├── NavLink.tsx              # Navigation link component
 │   │   ├── OpportunityCard.tsx      # Opportunity display card
 │   │   ├── ProtectedRoute.tsx       # Auth guard wrapper
@@ -119,7 +124,10 @@ DevScoutLaunchPad solves this by combining:
 │   │   ├── types.ts                 # TypeScript interfaces
 │   │   └── utils.ts                 # Utility functions
 │   ├── pages/
+│   │   ├── About.tsx                # Public about page (wraps AboutPage component)
 │   │   ├── Auth.tsx                 # Sign-in / Sign-up page
+│   │   ├── Contact.tsx              # Public contact page with form
+│   │   ├── HomePage.tsx             # Public landing page (hero, features, FAQ, footer)
 │   │   ├── Index.tsx                # Main dashboard page
 │   │   └── NotFound.tsx             # 404 page
 │   ├── App.tsx                      # Root app with routes
