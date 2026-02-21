@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,7 +10,32 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { resumeText, fileName } = await req.json();
+    // Auth check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Input validation
+    const body = await req.json();
+    const { resumeText, fileName } = body;
+    if (typeof resumeText !== "string" || resumeText.length === 0 || resumeText.length > 50000) {
+      return new Response(JSON.stringify({ error: "Invalid input: resumeText must be a string up to 50000 characters" }), { status: 400, headers: corsHeaders });
+    }
+    if (typeof fileName !== "string" || fileName.length === 0 || fileName.length > 255) {
+      return new Response(JSON.stringify({ error: "Invalid input: fileName must be a string up to 255 characters" }), { status: 400, headers: corsHeaders });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -122,8 +148,7 @@ CRITICAL: Do NOT add any information that is not in the resume. Preserve all tex
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI error:", response.status, errText);
+      console.error("AI error:", response.status);
       throw new Error("AI gateway error");
     }
 
@@ -136,7 +161,7 @@ CRITICAL: Do NOT add any information that is not in the resume. Preserve all tex
     });
   } catch (e) {
     console.error("analyze-resume error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Request failed. Please try again." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
