@@ -24,7 +24,7 @@ const Auth = () => {
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
-      else navigate("/");
+      else navigate("/dashboard");
     } else {
       const { error } = await signUp(email, password);
       if (error) setError(error.message);
